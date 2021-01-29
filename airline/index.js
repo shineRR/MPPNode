@@ -1,11 +1,13 @@
 const express = require('express')
 const mongoose = require('mongoose')
 const Flight = require('./Model/flight')
+const router = require("./routes/route");
 const bodyParser = require('body-parser')
+
 const multer = require('multer')
 const upload = multer({dest: "uploads/"})
+
 const app = express()
-const path = require('path')
 const port = 3000
 
 const dbURI = 'mongodb+srv://admin:admin@mpp.zysk6.mongodb.net/mpp-lab?retryWrites=true&w=majority'
@@ -14,8 +16,8 @@ mongoose.connect(dbURI, {useNewUrlParser: true, useUnifiedTopology: true})
     .catch((error) => console.log(error))
 
 app.use(express.static(__dirname + '/public'))
+app.use("/uploads", router)
 app.use(bodyParser.urlencoded({ extended: true }));
-// app.use(upload.array());
 
 app.set('view engine', 'ejs')
 

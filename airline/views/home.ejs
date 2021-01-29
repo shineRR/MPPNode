@@ -8,7 +8,6 @@
 
 <body>
 <header>
-    <b>Flights!</b>
 </header>
 
 <main>
@@ -26,26 +25,44 @@
             <tr>
                 <td><%= flight.destination %></td>
                 <td><%= flight.date%></td>
-                <td><%= flight.file%></td>
+                <td><a href="<%= flight.file%>">Download File</a></td>
                 <td><%= flight.price%></td>
             </tr>
         <% }); %>
         </tbody>
     </table>
+    <div class="login-box">
+        <h2>New Record</h2>
+        <form method="post" enctype="multipart/form-data">
+            <div class="user-box">
+                <input type="text" required id="destination" placeholder="Madrid" name="destination"><br><br>
+                <label for="destination">Destination:</label>
+            </div>
+            <div class="user-box">
+
+                <input type="date" required id="date" name="date"><br><br>
+            </div>
+            <div class="user-box">
+                <input type="file" name="file"><br><br>
+                <label for="file">File:</label>
+            </div>
+            <div class="user-box">
+                <input type="number" required id="price" placeholder="100" name="price"><br><br>
+                <label for="price">Price:</label>
+            </div>
+            <a>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <!--                Submit-->
+                <input type="submit" value="Submit">
+            </a>
+        </form>
+    </div>
 </main>
 
 <footer>
-    <form method="post" enctype="multipart/form-data">
-        <label for="destination">Destination:</label>
-        <input type="text" required id="destination" placeholder="Madrid" name="destination"><br><br>
-        <label for="date">Date:</label>
-        <input type="date" required id="date" placeholder="21.01.12" name="date"><br><br>
-        <label for="file">File:</label>
-        <input type="file" name="file"><br><br>
-        <label for="price">Price:</label>
-        <input type="number" required id="price" placeholder="100" name="price"><br><br>
-        <input type="submit" value="Submit">
-    </form>
 </footer>
 
 </body>
