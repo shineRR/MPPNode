@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Main Page!</title>
+</head>
+<link rel="stylesheet" type="text/css" href="css/style.css" />
+
+<body>
+<header>
+    <b>Flights!</b>
+</header>
+
+<main>
+    <table class="styled-table">
+        <thead>
+        <tr>
+            <th>Destination</th>
+            <th>Date</th>
+            <th>File</th>
+            <th>Price</th>
+        </tr>
+        </thead>
+        <tbody>
+        <% flights.forEach(function(flight) { %>
+            <tr>
+                <td><%= flight.destination %></td>
+                <td><%= flight.date%></td>
+                <td><%= flight.file%></td>
+                <td><%= flight.price%></td>
+            </tr>
+        <% }); %>
+        </tbody>
+    </table>
+</main>
+
+<footer>
+    <form method="post" enctype="multipart/form-data">
+        <label for="destination">Destination:</label>
+        <input type="text" required id="destination" placeholder="Madrid" name="destination"><br><br>
+        <label for="date">Date:</label>
+        <input type="date" required id="date" placeholder="21.01.12" name="date"><br><br>
+        <label for="file">File:</label>
+        <input type="file" name="file"><br><br>
+        <label for="price">Price:</label>
+        <input type="number" required id="price" placeholder="100" name="price"><br><br>
+        <input type="submit" value="Submit">
+    </form>
+</footer>
+
+</body>
+</html>
