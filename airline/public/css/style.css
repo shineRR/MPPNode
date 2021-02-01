@@ -76,6 +76,17 @@ body {
     border-radius: 10px;
 }
 
+.btn {
+    background-color: Transparent;
+    background-repeat:no-repeat;
+    border: none;
+    cursor:pointer;
+    overflow: hidden;
+    outline:none;
+    color: white;
+    font-size: large;
+}
+
 .login-box h2 {
     margin: 0 0 30px;
     padding: 0;
