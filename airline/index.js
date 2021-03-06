@@ -1,8 +1,10 @@
 const cors = require('cors');
 const express = require('express')
 const mongoose = require('mongoose')
-const router = require("./server/routes/route");
 const bodyParser = require('body-parser')
+
+const flightRouter = require("./server/routes/flightRouter");
+const authRouter = require("./server/routes/authRouter");
 
 const app = express()
 const port = process.env.PORT || 3000
@@ -18,7 +20,8 @@ app.use(bodyParser.json());
 app.use(express.json());
 app.use(cors());
 
-app.use("", router);
+app.use("", flightRouter);
+app.use("", authRouter);
 
 app.get('*', async (req, res) => {
     console.log("get page");

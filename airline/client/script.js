@@ -38,6 +38,36 @@ putBtn = document.getElementById("updateData").onclick = async function () {
     }
 };
 
+function get_cookie ( cookie_name )
+{
+    let results = document.cookie.match ( '(^|;) ?' + cookie_name + '=([^;]*)(;|$)' );
+
+    if ( results )
+        return ( unescape ( results[2] ) );
+    else
+        return null;
+}
+
+async function auth(email, password, flag = false) {
+    const user = {};
+    user.email = email;
+    user.password = password;
+
+    console.log(user);
+    let response;
+
+    if (flag) {
+        console.log("reg");
+        response = await clientRequest("/register", "POST", user);
+        document.getElementById('reg-auth-Modal').modal = "hide";
+    } else {
+        console.log("auth");
+        response = await clientRequest("/auth", "POST", user);
+        console.log(response);
+        console.log(get_cookie("token"));
+    }
+}
+
 async function Delete(id){
     const response = await clientRequest(`/api/flights/${id}`, "DELETE");
     document.getElementsByClassName(id.toString())[0].remove();

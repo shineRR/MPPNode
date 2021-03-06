@@ -1,17 +1,6 @@
-const { json } = require('body-parser');
 const express = require('express')
 const Flight = require('../Model/flight');
 const router = express.Router()
-
-const render = (res) => {
-    Flight.find()
-        .then((result) => {
-            res.status(200),json(result)
-        })
-        .catch((err) => {
-            res.status(404)
-        })
-}
 
 router.get('/api/flights', (req, res) => {
     Flight.find()
