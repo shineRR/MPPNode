@@ -8,12 +8,17 @@ window.onload = async function() {
         let flight = {};
         flight.destination = document.getElementById("destination").value;
         flight.date = document.getElementById("date").value;
-        flight.file = document.getElementById("file").value;
+        flight.file = "";
         flight.price = document.getElementById("price").value;
 
         console.log(flight)
         const response = await clientRequest("/api/flights", "POST", flight);
-        getCard(response);
+        if (response.message === "Unauthorized user"){
+            alert("Ошибка 401, пользователь не авторизован");
+        }else {
+            getCard(response);
+            console.log(response);
+        }
    };
 }
 
@@ -28,12 +33,16 @@ putBtn = document.getElementById("updateData").onclick = async function () {
 
     const response = await clientRequest(`/api/flights/${flightId}`, "PUT", flight);
 
-    const elem = document.getElementsByClassName(flightId.toString())[0];
-    const elements = document.getElementsByClassName("pilot-card-fxv");
-
-    for (let i = 0; i < elements.length; i++){
-        if (elements[i] === elem){
-            getCard(response, i);
+    if (response.message === "Unauthorized user"){
+        alert("Ошибка 401, пользователь не авторизован");
+    } else {
+        const elem = document.getElementsByClassName(flightId.toString())[0];
+        const elements = document.getElementsByClassName("pilot-card-fxv");
+    
+        for (let i = 0; i < elements.length; i++){
+            if (elements[i] === elem){
+                getCard(response, i);
+            }
         }
     }
 };
@@ -66,11 +75,33 @@ async function auth(email, password, flag = false) {
         console.log(response);
         console.log(get_cookie("token"));
     }
+
+    if(response.message) {
+        document.getElementById('warning').style.display = "block";
+        document.getElementById('warning').innerText = response.message;
+        document.getElementById('auth-reg').style.display = "none";
+    } else {
+        document.getElementById('auth-reg').style.display = "block";
+
+        if (flag)
+            document.getElementById('auth-reg').innerText = "The user is registered";
+        else
+            document.getElementById('auth-reg').innerText = "The user is logged in";
+
+        document.getElementById('warning').style.display = "none";
+
+        document.getElementById('passwordField').value = "";
+        document.getElementById('emailField').value = "";
+    }
 }
 
 async function Delete(id){
     const response = await clientRequest(`/api/flights/${id}`, "DELETE");
-    document.getElementsByClassName(id.toString())[0].remove();
+    if (response.message !== "Unauthorized user")
+        document.getElementsByClassName(id.toString())[0].remove();
+    else {
+        alert("Ошибка 401, пользователь не авторизован");
+    }
 }
 
 async function loadData() {
@@ -92,8 +123,8 @@ function Update(id, destination, date, price) {
 async function clientRequest(url, method, data = null) {
     try {
         let headers = {};
-        // headers['Authorization'] = get_cookie("token");//.replace("token=Bearer%20","");
-        //console.log(headers['Authorization']);
+        headers['Authorization'] = get_cookie("token");
+        console.log(headers['Authorization']);
 
         let body;
 
@@ -122,29 +153,21 @@ function getCard(flight, position = null) {
                             <div class="card-body">
                                 <h5 class="card-title" id="destination">${flight.destination}</h5>
                                 <h6 class="card-subtitle mb-2 text-muted" id="date">${flight.date}</h6>
-
-                                <div id="file">File: ${flight.file}</div>
-                                <div id="price">Price: ${flight.price}</div>
-
+                                <div id="price">Price(USD): ${flight.price}</div>
                                 <hr>
-
                                 <button type="button" class="btn btn-danger" id="deleteBtn" onclick="Delete('${flight._id}')">Delete</button>
                                 <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal" id="putBtn" onclick="Update('${flight._id}','${flight.destination}','${flight.date}', '${flight.price}')">Update</button>
                             </div>
                         </div> 
                     </div>`;
         document.getElementById('flights').innerHTML = document.getElementById('flights').innerHTML + x;
-    }else{
+    } else {
         document.getElementsByClassName('pilot-card-fxv')[position].innerHTML = `<div class="card">
                             <div class="card-body">
                                 <h5 class="card-title" id="destination">${flight.destination}</h5>
                                 <h6 class="card-subtitle mb-2 text-muted" id="date">${flight.date}</h6>
-
-                                <div id="file">File: ${flight.file}</div>
-                                <div id="price">Price: ${flight.price}</div>
-
+                                <div id="price">Price(USD): ${flight.price}</div>
                                 <hr>
-
                                 <button type="button" class="btn btn-danger" id="deleteBtn" onclick="Delete('${flight._id}')">Delete</button>
                                 <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal" id="putBtn" onclick="Update('${flight._id}','${flight.destination}','${flight.date}', '${flight.price}')">Update</button>
                             </div>

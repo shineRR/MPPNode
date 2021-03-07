@@ -1,6 +1,7 @@
 const express = require('express')
 const Flight = require('../Model/flight');
 const router = express.Router()
+const auth = require('../middleware/auth');
 
 router.get('/api/flights', (req, res) => {
     Flight.find()
@@ -17,7 +18,7 @@ router.get('/:id', (req, res) => {
     res.sendFile(filePath)
 });
 
-router.post('/api/flights', (req, res) => {
+router.post('/api/flights', auth, (req, res) => {
     const flight = new Flight(req.body)
     console.log(flight)
     flight.save()
@@ -25,7 +26,7 @@ router.post('/api/flights', (req, res) => {
         .catch((error) => res.status(401))
 });
 
-router.put('/api/flights/:id', (req, res) => {
+router.put('/api/flights/:id', auth, (req, res) => {
     const id = req.params.id
     const flight = new Flight(req.body)
 
@@ -34,7 +35,7 @@ router.put('/api/flights/:id', (req, res) => {
         .catch((error) => console.log(err))
 });
 
-router.delete('/api/flights/:id', (req, res) => {
+router.delete('/api/flights/:id', auth, (req, res) => {
     const id = req.params.id
 
     Flight.findByIdAndDelete(id, function (err, docs) { 
