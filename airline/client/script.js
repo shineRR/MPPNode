@@ -1,8 +1,11 @@
-let addBtn;
 let flightId;
 
 window.onload = async function() {
     loadData()
+
+    document.getElementById("flightsData").onclick = async function () {
+        loadData();
+    };
 
     addBtn = document.getElementById("btnID").onclick = async function () {
         let flight = {};
@@ -11,13 +14,11 @@ window.onload = async function() {
         flight.file = "";
         flight.price = document.getElementById("price").value;
 
-        console.log(flight)
         const response = await clientRequest("/api/flights", "POST", flight);
         if (response.message === "Unauthorized user"){
             alert("Ошибка 401, пользователь не авторизован");
-        }else {
+        } else {
             getCard(response);
-            console.log(response);
         }
    };
 }
@@ -66,14 +67,10 @@ async function auth(email, password, flag = false) {
     let response;
 
     if (flag) {
-        console.log("reg");
         response = await clientRequest("/register", "POST", user);
         document.getElementById('reg-auth-Modal').modal = "hide";
     } else {
-        console.log("auth");
         response = await clientRequest("/auth", "POST", user);
-        console.log(response);
-        console.log(get_cookie("token"));
     }
 
     if(response.message) {
@@ -83,10 +80,12 @@ async function auth(email, password, flag = false) {
     } else {
         document.getElementById('auth-reg').style.display = "block";
 
-        if (flag)
+        if (flag) {
             document.getElementById('auth-reg').innerText = "The user is registered";
-        else
+        } else {
+            loadData();
             document.getElementById('auth-reg').innerText = "The user is logged in";
+        }
 
         document.getElementById('warning').style.display = "none";
 
@@ -105,11 +104,20 @@ async function Delete(id){
 }
 
 async function loadData() {
-    const data = await clientRequest("/api/flights", "GET");
-    console.log(data);
-
-    for (let i = 0; i < data.length; i++) {
-        getCard(data[i])
+    let elements = document.getElementsByClassName("pilot-card-fxv");
+    while (elements.length != 0) {
+        for (let i = 0; i < elements.length; i++){
+            elements[i].remove();
+        }
+        elements = document.getElementsByClassName("pilot-card-fxv");
+    }
+    const response = await clientRequest("/api/flights", "GET");
+    if (response.message === "Unauthorized user"){
+        alert("Ошибка 401, пользователь не авторизован");
+    }else {
+        for (let i = 0; i < response.length; i++) {
+            getCard(response[i])
+        }
     }
 }
 
@@ -124,7 +132,6 @@ async function clientRequest(url, method, data = null) {
     try {
         let headers = {};
         headers['Authorization'] = get_cookie("token");
-        console.log(headers['Authorization']);
 
         let body;
 
@@ -133,13 +140,12 @@ async function clientRequest(url, method, data = null) {
             body = JSON.stringify(data);
         }
 
-        console.log(body)
         const response = await fetch(url, {
             method,
             headers,
             body
         });
-        console.log(body)
+
         return await response.json();
     } catch (e) {
         console.warn(e.message);

@@ -3,7 +3,7 @@ const Flight = require('../Model/flight');
 const router = express.Router()
 const auth = require('../middleware/auth');
 
-router.get('/api/flights', (req, res) => {
+router.get('/api/flights', auth, (req, res) => {
     Flight.find()
     .then((result) => {
         res.status(200).json(result)
