@@ -11,7 +11,7 @@ const auth = (req, res, next) =>{
         let token = req.headers.authorization.replace('Bearer ', '');
         console.log(token);
 
-        const data = jwt.verify(token, "SECRET_KEY", {HttpOnly: true});
+        const data = jwt.verify(token, "SECRET_KEY", { HttpOnly: true });
         console.log(data);
         next()
     } catch (error) {

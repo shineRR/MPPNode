@@ -30,7 +30,6 @@ router.post("/auth", (req, res) => {
                         {
                             HttpOnly: true,
                             secure: false,
-                            //maxAge: 60 * 60 * 60
                         })
                     .json({message_jwt: "jwt is created"});
             } else {

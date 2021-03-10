@@ -7,7 +7,7 @@ window.onload = async function() {
         loadData();
     };
 
-    addBtn = document.getElementById("btnID").onclick = async function () {
+    document.getElementById("btnID").onclick = async function () {
         let flight = {};
         flight.destination = document.getElementById("destination").value;
         flight.date = document.getElementById("date").value;
@@ -23,7 +23,7 @@ window.onload = async function() {
    };
 }
 
-putBtn = document.getElementById("updateData").onclick = async function () {
+document.getElementById("updateData").onclick = async function () {
     let flight = {};
 
     flight._id = flightId;
