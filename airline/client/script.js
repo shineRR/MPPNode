@@ -1,11 +1,83 @@
+
+const socket = io();
+socket.emit('flights', 'Hello from the client!');
+
 let flightId;
+let flagAuth;
+
+socket.on("auth", function(message) {
+    regWindow(message);
+})
+
+socket.on("register", function(message) {
+
+    regWindow(message);
+})
+
+function regWindow(message) {
+    if(message) {
+        document.getElementById('warning').style.display = "block";
+        document.getElementById('warning').innerText = message;
+        document.getElementById('auth-reg').style.display = "none";
+    } else {
+        document.getElementById('auth-reg').style.display = "block";
+
+        if (flagAuth) {
+            document.getElementById('auth-reg').innerText = "The user is registered";
+        } else {
+            
+            document.getElementById('auth-reg').innerText = "The user is logged in";
+        }
+
+        document.getElementById('warning').style.display = "none";
+
+        document.getElementById('passwordField').value = "";
+        document.getElementById('emailField').value = "";
+    }
+}
+
+
+socket.on("flights", function(data) {
+    for (let i = 0; i < data.length; i++) {
+        getCard(data[i]);
+    }
+})
+
+socket.on("updateFlight", function(response) {
+    // if (response.message === "Unauthorized user"){
+    //     alert("Ошибка 401, пользователь не авторизован");
+    // } else {
+        const elem = document.getElementsByClassName(flightId.toString())[0];
+        const elements = document.getElementsByClassName("pilot-card-fxv");
+    
+        for (let i = 0; i < elements.length; i++){
+            if (elements[i] === elem){
+                getCard(response, i);
+            }
+        }
+    // }
+})
+
+socket.on("addFlights", function(response) {
+    getCard(response);
+    
+    // const response = await clientRequest("/api/flights", "POST", flight);
+    // if (response.message === "Unauthorized user"){
+    //     alert("Ошибка 401, пользователь не авторизован");
+    // } else {
+    //     getCard(response);
+    // }
+})
+
+socket.on("deleteFlight", function(response) {
+    if (response.message !== "Unauthorized user")
+        document.getElementsByClassName(flightId.toString())[0].remove();
+    else {
+        alert("Ошибка 401, пользователь не авторизован");
+    }
+})
 
 window.onload = async function() {
-    loadData()
-
-    document.getElementById("flightsData").onclick = async function () {
-        loadData();
-    };
 
     document.getElementById("btnID").onclick = async function () {
         let flight = {};
@@ -13,13 +85,7 @@ window.onload = async function() {
         flight.date = document.getElementById("date").value;
         flight.file = "";
         flight.price = document.getElementById("price").value;
-
-        const response = await clientRequest("/api/flights", "POST", flight);
-        if (response.message === "Unauthorized user"){
-            alert("Ошибка 401, пользователь не авторизован");
-        } else {
-            getCard(response);
-        }
+        socket.emit('addFlights', flight);
    };
 }
 
@@ -32,24 +98,10 @@ document.getElementById("updateData").onclick = async function () {
     flight.file = "";
     flight.price = document.getElementById("priceUpdate").value;
 
-    const response = await clientRequest(`/api/flights/${flightId}`, "PUT", flight);
-
-    if (response.message === "Unauthorized user"){
-        alert("Ошибка 401, пользователь не авторизован");
-    } else {
-        const elem = document.getElementsByClassName(flightId.toString())[0];
-        const elements = document.getElementsByClassName("pilot-card-fxv");
-    
-        for (let i = 0; i < elements.length; i++){
-            if (elements[i] === elem){
-                getCard(response, i);
-            }
-        }
-    }
+    socket.emit('updateFlight', flightId, flight);
 };
 
-function get_cookie ( cookie_name )
-{
+function get_cookie ( cookie_name ) {
     let results = document.cookie.match ( '(^|;) ?' + cookie_name + '=([^;]*)(;|$)' );
 
     if ( results )
@@ -65,60 +117,21 @@ async function auth(email, password, flag = false) {
 
     console.log(user);
     let response;
-
+    flagAuth = flag
     if (flag) {
-        response = await clientRequest("/register", "POST", user);
+        console.log("reg")
+        socket.emit("register", user);
         document.getElementById('reg-auth-Modal').modal = "hide";
     } else {
-        response = await clientRequest("/auth", "POST", user);
-    }
-
-    if(response.message) {
-        document.getElementById('warning').style.display = "block";
-        document.getElementById('warning').innerText = response.message;
-        document.getElementById('auth-reg').style.display = "none";
-    } else {
-        document.getElementById('auth-reg').style.display = "block";
-
-        if (flag) {
-            document.getElementById('auth-reg').innerText = "The user is registered";
-        } else {
-            loadData();
-            document.getElementById('auth-reg').innerText = "The user is logged in";
-        }
-
-        document.getElementById('warning').style.display = "none";
-
-        document.getElementById('passwordField').value = "";
-        document.getElementById('emailField').value = "";
+        console.log("auth")
+        // socket.emit('flights', 'Hello from the client!');
+        socket.emit("auth", user);
     }
 }
 
 async function Delete(id){
-    const response = await clientRequest(`/api/flights/${id}`, "DELETE");
-    if (response.message !== "Unauthorized user")
-        document.getElementsByClassName(id.toString())[0].remove();
-    else {
-        alert("Ошибка 401, пользователь не авторизован");
-    }
-}
-
-async function loadData() {
-    let elements = document.getElementsByClassName("pilot-card-fxv");
-    while (elements.length != 0) {
-        for (let i = 0; i < elements.length; i++){
-            elements[i].remove();
-        }
-        elements = document.getElementsByClassName("pilot-card-fxv");
-    }
-    const response = await clientRequest("/api/flights", "GET");
-    if (response.message === "Unauthorized user"){
-        alert("Ошибка 401, пользователь не авторизован");
-    }else {
-        for (let i = 0; i < response.length; i++) {
-            getCard(response[i])
-        }
-    }
+    flightId = id;
+    socket.emit('deleteFlight', id);
 }
 
 function Update(id, destination, date, price) {
@@ -126,30 +139,6 @@ function Update(id, destination, date, price) {
     document.getElementById("destinationUpdate").value = destination;
     document.getElementById("dateUpdate").value = date;
     document.getElementById("priceUpdate").value = price;
-}
-
-async function clientRequest(url, method, data = null) {
-    try {
-        let headers = {};
-        headers['Authorization'] = get_cookie("token");
-
-        let body;
-
-        if (data) {
-            headers['Content-type'] = 'application/json';
-            body = JSON.stringify(data);
-        }
-
-        const response = await fetch(url, {
-            method,
-            headers,
-            body
-        });
-
-        return await response.json();
-    } catch (e) {
-        console.warn(e.message);
-    }
 }
 
 function getCard(flight, position = null) {
