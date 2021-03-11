@@ -6,3 +6,4 @@ A simple application as in Lab 1, but with a different architecture. REST API mu
 # 3. JWT
 The token must be passed through the httponly cookie to the client and also sent to the server. When trying to read / change data on the server without a valid token, the client returns a 401 code. Upon receiving a 401, the client requires entering the username / password code. The jsonwebtoken and bcrypt packages are used to generate a jwt token.
 # 4. Web Sockets
+REST API for data exchange via Websockets. SockeIO library.
