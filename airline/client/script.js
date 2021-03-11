@@ -1,4 +1,3 @@
-
 const socket = io();
 socket.emit('flights', 'Hello from the client!');
 
@@ -10,7 +9,6 @@ socket.on("auth", function(message) {
 })
 
 socket.on("register", function(message) {
-
     regWindow(message);
 })
 
@@ -25,8 +23,8 @@ function regWindow(message) {
         if (flagAuth) {
             document.getElementById('auth-reg').innerText = "The user is registered";
         } else {
-            
             document.getElementById('auth-reg').innerText = "The user is logged in";
+            socket.emit('flights', 'Hello from the client!');
         }
 
         document.getElementById('warning').style.display = "none";
@@ -36,37 +34,45 @@ function regWindow(message) {
     }
 }
 
-
 socket.on("flights", function(data) {
-    for (let i = 0; i < data.length; i++) {
-        getCard(data[i]);
+    let elements = document.getElementsByClassName("pilot-card-fxv");
+    while (elements.length != 0) {
+        for (let i = 0; i < elements.length; i++){
+            elements[i].remove();
+        }
+        elements = document.getElementsByClassName("pilot-card-fxv");
+    }
+
+    if (data == "Unauthorized user") {
+        alert("Ошибка 401, пользователь не авторизован");
+    } else {
+        for (let i = 0; i < data.length; i++) {
+            getCard(data[i]);
+        }
     }
 })
 
-socket.on("updateFlight", function(response) {
-    // if (response.message === "Unauthorized user"){
-    //     alert("Ошибка 401, пользователь не авторизован");
-    // } else {
+socket.on("updateFlight", function(message) {
+    if (message === "Unauthorized user"){
+        alert("Ошибка 401, пользователь не авторизован");
+    } else {
         const elem = document.getElementsByClassName(flightId.toString())[0];
         const elements = document.getElementsByClassName("pilot-card-fxv");
     
         for (let i = 0; i < elements.length; i++){
             if (elements[i] === elem){
-                getCard(response, i);
+                getCard(message, i);
             }
         }
-    // }
+    }
 })
 
-socket.on("addFlights", function(response) {
-    getCard(response);
-    
-    // const response = await clientRequest("/api/flights", "POST", flight);
-    // if (response.message === "Unauthorized user"){
-    //     alert("Ошибка 401, пользователь не авторизован");
-    // } else {
-    //     getCard(response);
-    // }
+socket.on("addFlights", function(message) {
+    if (message === "Unauthorized user"){
+        alert("Ошибка 401, пользователь не авторизован");
+    } else {
+        getCard(message);
+    }
 })
 
 socket.on("deleteFlight", function(response) {
@@ -77,17 +83,18 @@ socket.on("deleteFlight", function(response) {
     }
 })
 
-window.onload = async function() {
+document.getElementById("flightsData").onclick = async function () {
+    socket.emit('flights', 'Hello from the client!');
+};
 
-    document.getElementById("btnID").onclick = async function () {
-        let flight = {};
-        flight.destination = document.getElementById("destination").value;
-        flight.date = document.getElementById("date").value;
-        flight.file = "";
-        flight.price = document.getElementById("price").value;
-        socket.emit('addFlights', flight);
-   };
-}
+document.getElementById("btnID").onclick = async function () {
+    let flight = {};
+    flight.destination = document.getElementById("destination").value;
+    flight.date = document.getElementById("date").value;
+    flight.file = "";
+    flight.price = document.getElementById("price").value;
+    socket.emit('addFlights', flight);
+};
 
 document.getElementById("updateData").onclick = async function () {
     let flight = {};
@@ -100,15 +107,6 @@ document.getElementById("updateData").onclick = async function () {
 
     socket.emit('updateFlight', flightId, flight);
 };
-
-function get_cookie ( cookie_name ) {
-    let results = document.cookie.match ( '(^|;) ?' + cookie_name + '=([^;]*)(;|$)' );
-
-    if ( results )
-        return ( unescape ( results[2] ) );
-    else
-        return null;
-}
 
 async function auth(email, password, flag = false) {
     const user = {};
