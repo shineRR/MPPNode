@@ -19,12 +19,7 @@ mongoose.connect(dbURI, {useNewUrlParser: true, useUnifiedTopology: true, useFin
     .then((result) => console.log('connected to db'))
     .catch((error) => console.log(error))
 
-
-const addUser = async (req) => {
-    req.next();
-};
-
-app.use('/', bodyParser.json(), addUser, graphqlHTTP((req, response, graphQLParams) => ({
+app.use('/', bodyParser.json(), graphqlHTTP((req, response, graphQLParams) => ({
     schema: schema,
     graphiql: true,
     context:{

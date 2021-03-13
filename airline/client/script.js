@@ -14,6 +14,12 @@ async function loadData() {
         elements = document.getElementsByClassName("pilot-card-fxv");
     }
 
+    console.log(document.cookie)
+    if (!document.cookie) {
+        alert("Ошибка 401, пользователь не авторизован");
+        return;
+    }
+
     let body = {query: `
                 {
                     flights {
@@ -30,7 +36,7 @@ async function loadData() {
     let flights = data.data.flights;
 
     for(let i = 0; i < flights.length; i++) {
-    getCard(flights[i])
+        getCard(flights[i])
     }
 }
 

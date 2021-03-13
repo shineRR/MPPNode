@@ -108,13 +108,15 @@ const MainMutationType = new GraphQLObjectType({
             
                 await User.find({ email: user.email }, function (err, docs) {
                     if (docs.length == 0) {
-                        user.save();
                         res.message = null
+                        user.save()
+                            .catch(() => {
+                                res.message = "Already exists.";
+                            });
                     } else {
                         res.message = "Already exists.";
                     }
                 });
-
                 return res;
             }
         },
