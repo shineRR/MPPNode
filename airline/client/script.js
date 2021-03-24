@@ -1,40 +1,11 @@
-const socket = io();
-socket.emit('flights', 'Hello from the client!');
-
 let flightId;
 let flagAuth;
 
-socket.on("auth", function(message) {
-    regWindow(message);
-})
-
-socket.on("register", function(message) {
-    regWindow(message);
-})
-
-function regWindow(message) {
-    if(message) {
-        document.getElementById('warning').style.display = "block";
-        document.getElementById('warning').innerText = message;
-        document.getElementById('auth-reg').style.display = "none";
-    } else {
-        document.getElementById('auth-reg').style.display = "block";
-
-        if (flagAuth) {
-            document.getElementById('auth-reg').innerText = "The user is registered";
-        } else {
-            document.getElementById('auth-reg').innerText = "The user is logged in";
-            socket.emit('flights', 'Hello from the client!');
-        }
-
-        document.getElementById('warning').style.display = "none";
-
-        document.getElementById('passwordField').value = "";
-        document.getElementById('emailField').value = "";
-    }
+window.onload = async function(){
+    loadData();
 }
 
-socket.on("flights", function(data) {
+async function loadData() {
     let elements = document.getElementsByClassName("pilot-card-fxv");
     while (elements.length != 0) {
         for (let i = 0; i < elements.length; i++){
@@ -43,57 +14,34 @@ socket.on("flights", function(data) {
         elements = document.getElementsByClassName("pilot-card-fxv");
     }
 
-    if (data == "Unauthorized user") {
+    console.log(document.cookie)
+    if (!document.cookie) {
         alert("Ошибка 401, пользователь не авторизован");
-    } else {
-        for (let i = 0; i < data.length; i++) {
-            getCard(data[i]);
-        }
+        return;
     }
-})
 
-socket.on("updateFlight", function(message) {
-    if (message === "Unauthorized user"){
-        alert("Ошибка 401, пользователь не авторизован");
-    } else {
-        const elem = document.getElementsByClassName(flightId.toString())[0];
-        const elements = document.getElementsByClassName("pilot-card-fxv");
-    
-        for (let i = 0; i < elements.length; i++){
-            if (elements[i] === elem){
-                getCard(message, i);
-            }
-        }
-    }
-})
+    let body = {query: `
+                {
+                    flights {
+                        _id
+                        destination
+                        date
+                        file
+                        price
+                    }
+                }
+                `};
 
-socket.on("addFlights", function(message) {
-    if (message === "Unauthorized user"){
-        alert("Ошибка 401, пользователь не авторизован");
-    } else {
-        getCard(message);
-    }
-})
+    const data = await clientRequest("/", "POST", body);
+    let flights = data.data.flights;
 
-socket.on("deleteFlight", function(response) {
-    if (response.message !== "Unauthorized user")
-        document.getElementsByClassName(flightId.toString())[0].remove();
-    else {
-        alert("Ошибка 401, пользователь не авторизован");
+    for(let i = 0; i < flights.length; i++) {
+        getCard(flights[i])
     }
-})
+}
 
 document.getElementById("flightsData").onclick = async function () {
-    socket.emit('flights', 'Hello from the client!');
-};
-
-document.getElementById("btnID").onclick = async function () {
-    let flight = {};
-    flight.destination = document.getElementById("destination").value;
-    flight.date = document.getElementById("date").value;
-    flight.file = "";
-    flight.price = document.getElementById("price").value;
-    socket.emit('addFlights', flight);
+    loadData();
 };
 
 document.getElementById("updateData").onclick = async function () {
@@ -105,8 +53,108 @@ document.getElementById("updateData").onclick = async function () {
     flight.file = "";
     flight.price = document.getElementById("priceUpdate").value;
 
-    socket.emit('updateFlight', flightId, flight);
+    let body = {query:`
+                mutation {
+                    updateFlight(input:{
+                        _id: "${flight._id}"
+                        destination: "${flight.destination}"
+                        date: "${flight.date}"
+                        file: "${flight.file}"
+                        price: ${flight.price}
+                    })
+                    {
+                        _id
+                        destination
+                        date
+                        file
+                        price
+                    }
+                }`};
+
+    const data = await clientRequest("/", "POST", body);
+    console.log(data)
+
+    const updatedFlight = data.data.updateFlight
+    if (updatedFlight == null) {
+        alert("Ошибка 401, пользователь не авторизован");
+    } else {
+        const elem = document.getElementsByClassName(flightId.toString())[0];
+        const elements = document.getElementsByClassName("pilot-card-fxv");
+    
+        for (let i = 0; i < elements.length; i++) {
+            if (elements[i] === elem) {
+                getCard(updatedFlight, i);
+            }
+        }
+    }
 };
+
+document.getElementById("btnID").onclick = async function () {
+    let flight = {}
+    flight.destination = document.getElementById("destination").value;
+    flight.date = document.getElementById("date").value;
+    flight.file = "";
+    flight.price = document.getElementById("price").value;
+
+    let body = {query:`
+                    mutation {
+                        createFlight(input:{
+                            destination: "${flight.destination}"
+                            date: "${flight.date}"
+                            file: "${flight.file}"
+                            price: ${flight.price}
+                        })
+                        {
+                            _id
+                            destination
+                            date
+                            file
+                            price
+                        }
+                    }`};
+
+    const data = await clientRequest("/", "POST", body);
+    console.log(data);
+    let newFlight = data.data.createFlight;
+
+    if (newFlight === null){
+        alert("Ошибка 401, пользователь не авторизован");
+    }else {
+        getCard(newFlight);
+    }
+};
+
+function Update(id, destination, date, price) {
+    flightId = id;
+    document.getElementById("destinationUpdate").value = destination;
+    document.getElementById("dateUpdate").value = date;
+    document.getElementById("priceUpdate").value = price;
+}
+
+async function Delete(id){
+    flightId = id;
+    let body = {query: `
+                mutation {
+                    deleteFlight(input: {
+                        _id: "${id}"
+                    })
+                    {
+                        _id
+                    }
+                }
+            `};
+
+    const response = await clientRequest(`/`, "POST", body);
+    let deleteFlight = response.data.deleteFlight._id;
+    console.log(response);
+
+    if (deleteFlight == null)
+        alert("Ошибка 401, пользователь не авторизован");
+    else {
+        console.log(deleteFlight)
+        document.getElementsByClassName(deleteFlight.toString())[0].remove();
+    } 
+}
 
 async function auth(email, password, flag = false) {
     const user = {};
@@ -114,29 +162,111 @@ async function auth(email, password, flag = false) {
     user.password = password;
 
     console.log(user);
-    let response;
-    flagAuth = flag
+
     if (flag) {
-        console.log("reg")
-        socket.emit("register", user);
+        console.log("reg");
+
+        let body = {query: `
+            mutation {
+                registerUser( input: {
+                    email: "${user.email}"
+                    password: "${user.password}"
+                })
+                {
+                    message
+                }
+            }
+        `};
+
+        let response = await clientRequest("/", "POST", body);
+
         document.getElementById('reg-auth-Modal').modal = "hide";
+        console.log(response)
+        data = response.data.registerUser;
+
     } else {
-        console.log("auth")
-        // socket.emit('flights', 'Hello from the client!');
-        socket.emit("auth", user);
+        console.log("auth");
+        let body = {query: `
+            mutation {
+                loginUser( input: {
+                    email: "${user.email}"
+                    password: "${user.password}"
+                })
+                {
+                    message
+                    token
+                }
+            }
+        `};
+
+        let response = await clientRequest("/", "POST", body);
+        console.log(response);
+
+        data = response.data.loginUser;
     }
+
+    if(data.message !== null) {
+        document.getElementById('warning').style.display = "block";
+        document.getElementById('warning').innerText = data.message;
+        document.getElementById('auth-reg').style.display = "none";
+    } else {
+        document.getElementById('auth-reg').style.display = "block";
+
+        if (flag)
+            document.getElementById('auth-reg').innerText = "The user is registered";
+        else {
+            document.getElementById('auth-reg').innerText = "The user is logged in";
+            if (data.token !== null){
+                token = data.token;
+            }
+
+            let date = new Date(Date.now() + 3600e3);
+            date = date.toUTCString();
+            document.cookie = "Token" + '=' + token + "; path=/; expires="+ date;
+        }
+
+        document.getElementById('warning').style.display = "none";
+
+        document.getElementById('passwordField').value = "";
+        document.getElementById('emailField').value = "";user
+    }
+
 }
 
-async function Delete(id){
-    flightId = id;
-    socket.emit('deleteFlight', id);
+function get_cookie ( cookie_name )
+{
+    let results = document.cookie.match ( '(^|;) ?' + cookie_name + '=([^;]*)(;|$)' );
+
+    if ( results )
+        return ( unescape ( results[2] ) );
+    else
+        return null;
 }
 
-function Update(id, destination, date, price) {
-    flightId = id;
-    document.getElementById("destinationUpdate").value = destination;
-    document.getElementById("dateUpdate").value = date;
-    document.getElementById("priceUpdate").value = price;
+async function clientRequest(url, method, data = null) {
+    try {
+        let headers = {};
+        if (get_cookie("Token")){
+            headers['Authorization'] = get_cookie("Token");
+        }
+
+        let body;
+
+        if (data) {
+            headers['Content-type'] = 'application/json';
+            body = JSON.stringify(data);
+        }
+
+        const response = await fetch(url, {
+            method: method,
+            headers: headers,
+            body: body
+        });
+
+        return await response.json();
+    } catch (e) {
+        console.warn(e.message);
+    }
 }
 
 function getCard(flight, position = null) {
