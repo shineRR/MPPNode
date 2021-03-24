@@ -13,10 +13,6 @@ const MainQueryType = new GraphQLObjectType({
             resolve: () => {
                 return getFlights()
             }
-        },
-        users: {
-            type: new GraphQLList(UserType),
-            resolve: () => User
         }
     }
 });
